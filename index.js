@@ -1,5 +1,6 @@
 const express = require('express');
 const exphbs = require('express-handlebars');
+const methodOverride = require('method-override');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
@@ -11,6 +12,9 @@ const app = express(); // initialize app
 // Body parser
 app.use(bodyParser.json()); // converting user input into JSON
 app.use(bodyParser.urlencoded({extended: true}));
+
+// Method override for making update middleware
+app.use(methodOverride('_method'));
 
 // Connect to mongoose
 mongoose.connect('mongodb://localhost/vidapp-dev')
@@ -110,6 +114,32 @@ app.post('/ideas', (req, res)=>{
   // console.log(req.body);
   // res.send('Ok');
 });
+
+// Edit Form Process - should be with PUT, but doesn't work, works fine with overwriting post
+app.post('/ideas/:id', (req, res) => {
+    Idea.findOne({
+        _id: req.params.id,
+    })
+    .then(idea => {
+        //new values
+        idea.title = req.body.title;
+        idea.details = req.body.details;
+        idea.save()
+        .then(idea => {
+            res.redirect('/ideas');
+        });
+    });
+});
+
+// Delete ideas
+app.delete('/ideas/:id', (req,res)=>{
+  Idea.remove({_id:req.params.id})
+    .then(()=>{
+      res.redirect('/ideas');
+    })
+});
+
+
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
