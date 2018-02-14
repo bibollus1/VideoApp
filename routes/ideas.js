@@ -1,13 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+//Load helper
+const {ensureAuthenticated} = require('../helpers/auth');
+
 
 //Load Idea Model
 require('../models/Idea');
 const Idea = mongoose.model('ideas');
 
 // Idea Index page
-router.get('/', (req, res)=>{ // /ideas
+router.get('/', ensureAuthenticated,  (req, res)=>{ // /ideas
   Idea.find({})
   .sort({date:'descending'})
   .then(ideas=>{
@@ -18,12 +21,12 @@ router.get('/', (req, res)=>{ // /ideas
 });
 
 // Add idea form
-router.get('/add', (req, res) => {
+router.get('/add', ensureAuthenticated, (req, res) => {
   res.render('ideas/add');
 });
 
 // Edit idea form
-router.get('/edit/:id', (req, res) => {
+router.get('/edit/:id', ensureAuthenticated, (req, res) => {
   Idea.findOne({
     _id: req.params.id
   })
@@ -37,7 +40,7 @@ router.get('/edit/:id', (req, res) => {
 
 
 // Process form
-router.post('/', (req, res)=>{
+router.post('/', ensureAuthenticated, (req, res)=>{
   let errors = [];
   if(!req.body.title){
     errors.push({text:'Please add a title'});
@@ -70,7 +73,7 @@ router.post('/', (req, res)=>{
 });
 
 // Edit Form Process - should be with PUT, but doesn't work, works fine with overwriting post
-router.post('/:id', (req, res) => {
+router.post('/:id', ensureAuthenticated,  (req, res) => {
     Idea.findOne({
         _id: req.params.id,
     })
@@ -87,7 +90,7 @@ router.post('/:id', (req, res) => {
 });
 
 // Delete ideas
-router.delete('/:id', (req,res)=>{
+router.delete('/:id', ensureAuthenticated,  (req,res)=>{
   Idea.remove({_id:req.params.id})
     .then(()=>{
       req.flash('success_msg', 'Idea removed');
