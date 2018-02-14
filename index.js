@@ -6,6 +6,7 @@ const flash = require('connect-flash');
 const session = require('express-session');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const passport = require('passport');
 
 // express-session + connect-flash - for flash messages
 // passpor js + passport local for local login auth
@@ -19,6 +20,10 @@ const app = express(); // initialize app
 // Load routes
 const ideas = require('./routes/ideas')
 const users = require('./routes/users')
+
+
+// Passport config
+require('./config/passport')(passport);
 
 // Body parser
 app.use(bodyParser.json()); // converting user input into JSON
@@ -37,6 +42,10 @@ app.use(session({
   saveUninitialized: true
 }));
 
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(flash());
 
 // Global variables
@@ -44,6 +53,7 @@ app.use(function(req,res, next){
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   res.locals.error = req.flash('error');
+  res.locals.user = req.user || null;
   next();
 });
 
